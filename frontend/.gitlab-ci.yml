@@ -1,0 +1,41 @@
+image: docker:19.03.12
+services:
+  - docker:19.03.12-dind
+
+stages:
+  - build
+  - deploy
+
+variables:
+  CONTAINER_BACK_IMAGE: $CI_REGISTRY_IMAGE:backend
+
+before_script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+
+Building backend:
+  stage: build
+  script:
+    - docker build -t $CONTAINER_BACK_IMAGE ./
+    - docker push $CONTAINER_BACK_IMAGE
+
+deploy:
+  stage: deploy
+  image: ubuntu
+  before_script:
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PEM" | tr -d '\r' | ssh-add -
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
+  - chmod 644 ~/.ssh/known_hosts
+  script:
+  - ssh $SSH_USER@$SSH_HOST "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY;
+                             docker stop backend;
+                             docker rm backend;
+                             docker rmi $CONTAINER_BACK_IMAGE;
+                             docker pull $CONTAINER_BACK_IMAGE;
+                             docker run --name backend -d -t --network="host" $CONTAINER_BACK_IMAGE"
+  only:
+    - master

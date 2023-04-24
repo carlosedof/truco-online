@@ -1,0 +1,10 @@
+version: '3.1'
+services:
+  dtdevs:
+    container_name: truco-be
+    image: dtdevss/truco-be
+    env_file:
+      - .env
+    restart: 'always'
+    network_mode: 'host'
+    build: .
