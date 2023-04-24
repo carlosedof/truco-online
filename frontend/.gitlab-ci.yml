@@ -3,21 +3,21 @@ services:
   - docker:19.03.12-dind
 
 stages:
-  - build
+  - buildfront
   - deploy
 
 variables:
-  CONTAINER_BACK_IMAGE: $CI_REGISTRY_IMAGE:backend
+  CONTAINER_FRONT_IMAGE: $CI_REGISTRY_IMAGE:frontend
 
 before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
 
-Building backend:
-  stage: build
+Building frontend:
+  stage: buildfront
   script:
-    - docker build -t $CONTAINER_BACK_IMAGE ./
-    - docker push $CONTAINER_BACK_IMAGE
+    - docker build -t $CONTAINER_FRONT_IMAGE ./
+    - docker push $CONTAINER_FRONT_IMAGE
 
 deploy:
   stage: deploy
@@ -31,11 +31,6 @@ deploy:
   - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
   - chmod 644 ~/.ssh/known_hosts
   script:
-  - ssh $SSH_USER@$SSH_HOST "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY;
-                             docker stop backend;
-                             docker rm backend;
-                             docker rmi $CONTAINER_BACK_IMAGE;
-                             docker pull $CONTAINER_BACK_IMAGE;
-                             docker run --name backend -d -t --network="host" $CONTAINER_BACK_IMAGE"
+  - ssh $SSH_USER@$SSH_HOST "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY;docker rmi $CONTAINER_FRONT_IMAGE;docker rmi $CONTAINER_FRONT_IMAGE:latest;docker rmi $CONTAINER_FRONT_IMAGE:frontend;docker pull $CONTAINER_FRONT_IMAGE;docker stop frontend;docker rm frontend;docker run --name frontend -d -t --network="host" $CONTAINER_FRONT_IMAGE"
   only:
     - master

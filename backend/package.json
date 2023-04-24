@@ -1,37 +1,34 @@
 {
-  "name": "truco-online",
-  "private": true,
-  "version": "1.0.5",
+  "name": "express-ws-boiler",
+  "version": "1.0.0",
+  "description": "An easy to use express and ws boiler plate",
+  "main": "index.js",
   "scripts": {
-    "start": "vite --host",
-    "dev": "vite --host",
-    "build": "vite build",
-    "preview": "vite preview",
-    "lint": "eslint --max-warnings=0 src"
+    "start": "node index",
+    "start:dev": "nodemon index"
+  },
+  "keywords": [],
+  "author": {
+    "email": "me@unsmart.co",
+    "name": "Garret Harp"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "nodemon": "^2.0.4"
   },
   "dependencies": {
-    "lodash": "^4.17.21",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "react-icons": "^4.3.1",
-    "react-reveal": "^1.2.2",
-    "react-router-dom": "^6.3.0",
-    "socket.io-client": "^4.6.1",
-    "websocket": "^1.0.34",
-    "zustand": "^4.3.7"
+    "express": "^4.17.1",
+    "https-proxy-agent": "^5.0.1",
+    "moment": "^2.29.3",
+    "socks-proxy-agent": "^6.2.0",
+    "ws": "^7.3.0"
   },
-  "devDependencies": {
-    "@types/react": "^18.0.0",
-    "@types/react-dom": "^18.0.0",
-    "@vitejs/plugin-react": "^1.3.0",
-    "autoprefixer": "^10.4.14",
-    "eslint": "^8.39.0",
-    "eslint-config-react-app": "^7.0.1",
-    "postcss": "^8.4.23",
-    "prettier": "^2.8.7",
-    "prettier-plugin-tailwindcss": "^0.2.7",
-    "tailwindcss": "^3.3.1",
-    "vite": "^2.9.7",
-    "vite-plugin-eslint": "^1.8.1"
-  }
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/itsUnsmart/express-ws-boiler.git"
+  },
+  "bugs": {
+    "url": "https://github.com/itsUnsmart/express-ws-boiler/issues"
+  },
+  "homepage": "https://github.com/itsUnsmart/express-ws-boiler"
 }

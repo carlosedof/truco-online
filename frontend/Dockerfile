@@ -1,24 +1,15 @@
-FROM node:14-alpine
+FROM node:16-alpine as builder
+WORKDIR /usr/src/app
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+COPY package*.json yarn.lock ./
+RUN yarn install --force
+COPY . .
+RUN rm -rf dist
 
-WORKDIR /app
+RUN yarn build
+FROM nginx:1.22-alpine
+COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
+COPY site.conf /etc/nginx/conf.d/default.conf
 
-ENV NODE_ENV=production
-
-COPY package*.json /app/
-
-RUN npm install
-
-COPY . /app
-
-# RUN node build
-
-ADD entrypoint.sh entrypoint.sh
-
-RUN chmod 755 entrypoint.sh && chown appuser:appgroup entrypoint.sh
-
-EXPOSE 5008
-EXPOSE 5009
-
-ENTRYPOINT ["./entrypoint.sh"]
+EXPOSE 5010
+CMD ["nginx", "-g", "daemon off;"]
