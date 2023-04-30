@@ -1,8 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
-import cardBack from '../../assets/card.png';
-import cardBackH from '../../assets/cardHoriz.png';
-import Flip from 'react-reveal/Flip';
-import useBreakpoint from '../../hooks/useBreakpoint';
+import React, { useMemo } from 'react';
 import Bounce from 'react-reveal/Bounce';
 
 const styles = {
@@ -72,9 +68,9 @@ const OnTable = ({
       bottom={isCurrentPlayer}>
       <div
         className={`
-          flex h-[105px] w-[75px] flex-col justify-between rounded bg-white p-2
+          flex h-[95px] w-[60px] sm:h-[110px] sm:w-[80px] flex-col justify-between rounded bg-white p-2
           ${
-            ot.card.naipe === 's' || ot.card.naipe === 'c'
+            ot.card.suit === 's' || ot.card.suit === 'c'
               ? 'text-black'
               : 'text-red-500'
           }
@@ -83,7 +79,7 @@ const OnTable = ({
           <b>{ot.card.nr}</b>
         </div>
         <div className="flex justify-center">
-          {React.createElement(handleIcon(ot.card.naipe), {size: 30}, null)}
+          {React.createElement(handleIcon(ot.card.suit), {size: 30}, null)}
         </div>
         <div />
       </div>

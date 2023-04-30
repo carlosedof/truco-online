@@ -28,8 +28,8 @@ const Chair = ({position}) => {
       }
       takeSeat(
         {
-          at: positionByTeam,
-          prop: isTeamOne ? 'team1' : 'team2',
+          chair: positionByTeam,
+          team: isTeamOne ? 'team1' : 'team2',
         },
         currentPlayer,
       );

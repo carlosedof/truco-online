@@ -1,7 +1,8 @@
 import {create} from 'zustand';
 import {w3cwebsocket as W3CWebSocket} from 'websocket';
+import Socket from "../../components/Socket";
 
-const EVENT_TYPES = {
+export const EVENT_TYPES = {
   PING: 'ping',
   CONNECTED_PLAYERS: 'connectedPlayers',
   GET_HANDS: 'gethands',
@@ -105,32 +106,22 @@ const useGameStore = create((set, get) => ({
   },
   onResetRestart: () => set(() => ({restart: false})),
   playCard: playedCard => {
-    get().socket.send(
-      JSON.stringify({
-        method: EVENT_TYPES.PLAYED,
-        data: playedCard,
-      }),
-    );
+    Socket.emit(EVENT_TYPES.PLAYED, playedCard);
   },
   takeSeat: (seat, playername) => {
-    get().socket.send(
-      JSON.stringify({
-        method: EVENT_TYPES.TAKE_SIT,
-        data: {
-          name: playername,
-          seat,
-        },
-      }),
-    );
-    set(() => ({isSitting: true}));
+    Socket.emit(EVENT_TYPES.TAKE_SIT, {seat, playername});
+    // get().socket.send(
+    //   JSON.stringify({
+    //     method: EVENT_TYPES.TAKE_SIT,
+    //     data: {
+    //       name: playername,
+    //       seat,
+    //     },
+    //   }),
+    // );
+    // set(() => ({isSitting: true}));
   },
-  getHands: () => {
-    get().socket.send(
-      JSON.stringify({
-        method: EVENT_TYPES.GET_HANDS,
-      }),
-    );
-  },
+  getHands: () => Socket.emit(EVENT_TYPES.GET_HANDS),
   getWhosConnected: () => {
     get().socket.send(
       JSON.stringify({
@@ -138,13 +129,7 @@ const useGameStore = create((set, get) => ({
       }),
     );
   },
-  restartGame: () => {
-    get().socket.send(
-      JSON.stringify({
-        method: EVENT_TYPES.RESTART,
-      }),
-    );
-  },
+  restartGame: () => Socket.emit(EVENT_TYPES.RESTART),
 }));
 
 export default useGameStore;

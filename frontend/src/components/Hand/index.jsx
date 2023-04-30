@@ -105,10 +105,7 @@ const Hand = ({h, handleIcon, currentPlayer}) => {
           className="transition-all hover:scale-105"
           onClick={() => {
             if ((isRevealed && turn === currentPlayer) || true) {
-              playCard({
-                method: 'played',
-                data: {card, player: h?.player},
-              });
+              playCard({card, player: h?.player});
             }
           }}>
           <Flip left cascade key={y}>

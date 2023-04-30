@@ -4,7 +4,7 @@ import {createJSONStorage, persist} from 'zustand/middleware';
 const useGlobalStore = create()(
   persist(
     (set, get) => ({
-      currentPlayer: 'cadi',
+      currentPlayer: '',
       isSitting: false,
       setCurrentPlayer: currentPlayer =>
         set(() => ({currentPlayer, isSitting: false})),

@@ -79,10 +79,8 @@ const Table = () => {
   }, []);
 
   useEffect(() => {
-    if (connected) {
       getHands();
-    }
-  }, [connected]);
+  }, []);
 
   // todo use disconnect to check for online players, this is not neeeded
   // useEffect(() => {
@@ -93,7 +91,7 @@ const Table = () => {
   //     }, []);
 
   return (
-    <div className="flex h-full flex-col items-center justify-around sm:justify-center">
+    <div className="flex h-full flex-col items-center justify-center sm:justify-center">
       <div className="flex flex-col">
         {scoreboard && points && <Scoreboard currentPlayer={currentPlayer} />}
       </div>

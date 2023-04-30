@@ -12,7 +12,7 @@ const Deck = ({children}) => {
             <div className={className}>
               <div className={className}>
                 <img
-                  className="h-[85px] w-[50px] md:h-[105px] md:w-[70px]"
+                  className="h-[75px] w-[50px] md:h-[105px] md:w-[70px]"
                   src={cardBack}
                   alt={'card'}
                 />
