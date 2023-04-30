@@ -1,2 +1,0 @@
-require('./sockets')
-require('./web')

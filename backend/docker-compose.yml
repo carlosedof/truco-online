@@ -1,6 +1,6 @@
 version: '3.1'
 services:
-  dtdevs:
+  previnne:
     container_name: truco-be
     image: dtdevss/truco-be
     env_file:
