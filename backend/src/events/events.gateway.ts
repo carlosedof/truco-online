@@ -13,42 +13,40 @@ import { ICard } from '../types/card';
 import { strengthOrder } from '../constants/strengthOrder';
 import { naipeOrder } from '../constants/naipeOrder';
 import { IPoint } from '../types/point';
-
-type UserInfo = {
-  client: Socket;
-  user?: any;
-};
+import { UserInfo } from '../types/user-info';
+import {
+  points,
+  scoreboard,
+  sessions,
+  hands,
+  round,
+  roundTurn,
+  handTurn,
+  manilha,
+  handling,
+} from './initial.states';
+import { IHand } from '../types/hand';
 
 @WebSocketGateway({ cors: true })
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
-  private server: Server;
+  public server: Server;
 
-  private sessions: UserInfo[] = [];
-
-  scoreboard: IScoreboard = {
-    team1: {
-      score: 0,
-      players: ['a', 'b'],
-    },
-    team2: {
-      score: 0,
-      players: ['', ''],
-    },
-  };
-  points: IPoint[] = [{}, {}, {}];
-  round = 0;
-  handTurn = '';
-  roundTurn = '';
-  hands = [];
-  manilha = null;
-  handling = [];
+  points = points;
+  scoreboard = scoreboard;
+  sessions = sessions;
+  hands = hands;
+  round = round;
+  handTurn = handTurn;
+  roundTurn = roundTurn;
+  manilha = manilha;
+  handling = handling;
 
   async handleConnection(socket: Socket) {
-    console.log(`Connected on socket (${socket.handshake.query.user})`);
+    console.debug(`Connected on socket (${socket.handshake.query.user})`);
     this.sessions.push({ client: socket, user: socket.handshake.query.user });
     this.sessions.forEach((s) => {
-      s.client.emit('scoreboard', { scoreboard: this.scoreboard });
+      s.client.emit('connected', { scoreboard: this.scoreboard });
     });
   }
 
@@ -57,7 +55,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.sessions = this.sessions.filter((session) => {
       if (session?.client?.id === socket?.id) {
         userDisconnected = session.user;
-        console.log(`Disconnected from socket (${session.user})`);
+        console.debug(`Disconnected from socket (${session.user})`);
         return false;
       }
       return true;
@@ -66,13 +64,6 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       s.client.emit('is-offline', userDisconnected?.id);
     });
   }
-
-  // @SubscribeMessage('play')
-  // async handleMessage(socket: Socket, payload: any) {
-  //   const sendingSession = this.sessions.find(
-  //     (session) => session.client.id === socket.id,
-  //   );
-  // }
 
   @SubscribeMessage('restart')
   async handleRestart() {
@@ -93,7 +84,6 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.emit('turn', { turn: this.handTurn });
     socket.emit('hands', { hands: this.hands });
     socket.emit('played', { played: this.handling });
-    // socket.emit('scoreboard', { scoreboard: this.points });
     socket.emit('manilha', { manilha: this.manilha });
   }
 
@@ -466,9 +456,11 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // if (isNewRound) {
     //
     // }
-    this.sessions.forEach((s) => {
-      s.client.emit('turn', { turn: this.handTurn });
-    });
+    setTimeout(() => {
+      this.sessions.forEach((s) => {
+        s.client.emit('turn', { turn: this.handTurn });
+      });
+    }, 1200);
   };
 
   scoreHandler = (winnerPlayer) => {

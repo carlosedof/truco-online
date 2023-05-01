@@ -32,6 +32,7 @@ function SocketProvider({ children }) {
     Socket.addListener(EVENT_TYPES.READY, onReady);
     Socket.addListener(EVENT_TYPES.SCORE_BOARD, onScoreBoard);
     Socket.addListener(EVENT_TYPES.WHOS_CONNECTED, onScoreBoard);
+    Socket.addListener(EVENT_TYPES.CONNECTED, onScoreBoard);
     Socket.addListener(EVENT_TYPES.POINTS, onPoints);
     Socket.addListener(EVENT_TYPES.WINNER_ROUND, onWinnerRound);
     Socket.addListener(EVENT_TYPES.CONNECTIONS, onConnections);
