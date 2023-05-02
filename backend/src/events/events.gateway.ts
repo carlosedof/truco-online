@@ -32,18 +32,19 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   public server: Server;
 
-  points = points;
-  scoreboard = scoreboard;
-  sessions = sessions;
-  hands = hands;
-  round = round;
-  handTurn = handTurn;
-  roundTurn = roundTurn;
-  manilha = manilha;
-  handling = handling;
+  points: IPoint[] = Object.assign([], points);
+  // scoreboard: IScoreboard = Object.assign({}, scoreboard);
+  scoreboard: IScoreboard = JSON.parse(JSON.stringify(scoreboard));
+  sessions: UserInfo[] = Object.assign([], sessions);
+  hands: IHand[] = Object.assign([], hands);
+  round: number = round;
+  handTurn: string = handTurn;
+  roundTurn: string = roundTurn;
+  manilha: ICard = Object.assign({}, manilha);
+  handling: { card: ICard; player: string }[] = Object.assign([], handling);
 
   async handleConnection(socket: Socket) {
-    console.debug(`Connected on socket (${socket.handshake.query.user})`);
+    // console.debug(`Connected on socket (${socket.handshake.query.user})`);
     this.sessions.push({ client: socket, user: socket.handshake.query.user });
     this.sessions.forEach((s) => {
       s.client.emit('connected', { scoreboard: this.scoreboard });
@@ -55,7 +56,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.sessions = this.sessions.filter((session) => {
       if (session?.client?.id === socket?.id) {
         userDisconnected = session.user;
-        console.debug(`Disconnected from socket (${session.user})`);
+        // console.debug(`Disconnected from socket (${session.user})`);
         return false;
       }
       return true;
@@ -92,7 +93,6 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket: Socket,
     payload: { card: ICard; player: string },
   ) {
-    console.log(payload);
     const card = payload.card;
     const player = payload.player;
     const _hands = [...this.hands];
@@ -116,7 +116,6 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.hands[index] = hand;
     }
     this.handling.push({ card, player });
-    console.log(this.handling);
     this.sessions.forEach((s) => {
       s.client.emit('hands', { hands: this.hands });
       s.client.emit('played', { handling: this.handling });
@@ -198,8 +197,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.scoreboard.team1.players[1] &&
         this.scoreboard.team2.players[1]
       ) {
-        const ready = true;
-        s.client.emit('ready', { ready });
+        s.client.emit('ready', { ready: this.scoreboard });
       }
     });
   };
@@ -434,25 +432,25 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleNextHandleTurn = (isNewRound, player) => {
     if (this.scoreboard.team1.players.find((p) => player === p)) {
-      console.log('quem jogou foi do time 1');
+      // console.log('quem jogou foi do time 1');
       if (this.scoreboard.team1.players.indexOf(player) === 0) {
-        console.log('quem jogou foi do time 0 posicao 0');
+        // console.log('quem jogou foi do time 0 posicao 0');
         this.handTurn = this.scoreboard.team2.players[1];
       } else {
-        console.log('quem jogou foi do time 0 posicao 1');
+        // console.log('quem jogou foi do time 0 posicao 1');
         this.handTurn = this.scoreboard.team2.players[0];
       }
     } else {
-      console.log('quem jogou foi do time 2');
+      // console.log('quem jogou foi do time 2');
       if (this.scoreboard.team2.players.indexOf(player) === 0) {
-        console.log('quem jogou foi do time 2 posicao 0');
+        // console.log('quem jogou foi do time 2 posicao 0');
         this.handTurn = this.scoreboard.team1.players[0];
       } else {
-        console.log('quem jogou foi do time 2 posicao 1');
+        // console.log('quem jogou foi do time 2 posicao 1');
         this.handTurn = this.scoreboard.team1.players[1];
       }
     }
-    console.log('próximo deve ser', this.handTurn);
+    // console.log('próximo deve ser', this.handTurn);
     // if (isNewRound) {
     //
     // }
@@ -494,43 +492,43 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.points[this.round] = { winner: winnerPlayer };
       if (this.round === 1) {
         // segunda mão
-        console.log('// segunda mão');
+        // console.log('// segunda mão');
         if (this.points[0].draw) {
           // segunda mão com empate na primeira
-          console.log('// segunda mão com empate na primeira');
+          // console.log('// segunda mão com empate na primeira');
           this.scoreboard[winnerTeam].score =
             this.scoreboard[winnerTeam].score + 1;
           this.round = 0;
           finishedRound = true;
         } else {
-          console.log('// segunda mão sem empate na primeira');
+          // console.log('// segunda mão sem empate na primeira');
           // segunda mão sem empate na primeira
           if (
             this.scoreboard[winnerTeam].players.includes(this.points[0].winner)
           ) {
             // o time que venceu essa mão também venceu a mão anterior
-            console.log(
-              '// o time que venceu essa mão também venceu a mão anterior',
-            );
+            // console.log(
+            //   '// o time que venceu essa mão também venceu a mão anterior',
+            // );
             this.scoreboard[winnerTeam].score =
               this.scoreboard[winnerTeam].score + 1;
             this.round = 0;
             finishedRound = true;
           } else {
-            console.log(
-              '// o time que venceu essa mão perdeu a anterior, teremos terceira mão',
-            );
+            // console.log(
+            //   '// o time que venceu essa mão perdeu a anterior, teremos terceira mão',
+            // );
             // o time que venceu essa mão perdeu a anterior, teremos terceira mão
             this.round = this.round + 1;
           }
         }
       } else if (this.round === 0) {
-        console.log('// primeira mão, só atribui o ponto pra quem ganhou');
+        // console.log('// primeira mão, só atribui o ponto pra quem ganhou');
         // primeira mão, só atribui o ponto pra quem ganhou
         this.round = this.round + 1;
       } else {
         // ultima mão
-        console.log('// o time que vence essa mao vence a rodada');
+        // console.log('// o time que vence essa mao vence a rodada');
         this.scoreboard[winnerTeam].score =
           this.scoreboard[winnerTeam].score + 1;
         this.round = 0;
@@ -548,7 +546,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // turn = turn === connectedPlayers.length - 1 ? 0 : turn + 1;
-    console.log(this.scoreboard);
+    // console.log(this.scoreboard);
     this.sessions.forEach((s) => {
       s.client.emit('turn', { turn: this.handTurn });
       s.client.emit('played', { handling: [] });
