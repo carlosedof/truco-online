@@ -13,11 +13,12 @@ export const scoreboard: IScoreboard = {
   },
   team2: {
     score: 0,
-    players: ['', ''],
+    players: ['', 'c'],
   },
 };
 export const points: IPoint[] = [{}, {}, {}];
 export const round = 0;
+export const handValue = 0;
 export const handTurn = '';
 export const roundTurn = '';
 export const hands: IHand[] = [];

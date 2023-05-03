@@ -66,7 +66,7 @@ describe('On table, very first round card strength logic', () => {
       'winnerround',
       ({ winner }: { winner: string }) => {
         // TODO change to draw
-        expect(winner).toMatch('empate');
+        expect(winner).toMatch('draw');
         done();
       },
     );

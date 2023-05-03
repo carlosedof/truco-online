@@ -24,6 +24,7 @@ import {
   handTurn,
   manilha,
   handling,
+  handValue,
 } from './initial.states';
 import { IHand } from '../types/hand';
 
@@ -33,11 +34,11 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public server: Server;
 
   points: IPoint[] = Object.assign([], points);
-  // scoreboard: IScoreboard = Object.assign({}, scoreboard);
   scoreboard: IScoreboard = JSON.parse(JSON.stringify(scoreboard));
   sessions: UserInfo[] = Object.assign([], sessions);
   hands: IHand[] = Object.assign([], hands);
   round: number = round;
+  handValue: number = handValue;
   handTurn: string = handTurn;
   roundTurn: string = roundTurn;
   manilha: ICard = Object.assign({}, manilha);
@@ -64,6 +65,41 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.sessions.forEach((s) => {
       s.client.emit('is-offline', userDisconnected?.id);
     });
+  }
+
+  @SubscribeMessage('raiserequest')
+  async handleRaiseRequest(socket: Socket) {
+    const user: string = this.sessions.find(
+      (s) => s.client.id === socket.id,
+    )?.user;
+    const team = this.scoreboard.team1.players.find((p) => p === user)
+      ? 'team1'
+      : 'team2';
+    this.sessions.forEach((s) => {
+      s.client.emit('raiserequest', { team, user });
+    });
+  }
+
+  @SubscribeMessage('raiseresponse')
+  async handleRaiseResponse(
+    socket: Socket,
+    { response }: { response: boolean },
+  ) {
+    this.sessions.forEach((s) => {
+      s.client.emit('raiseresponse', { response });
+    });
+    const user: string = this.sessions.find(
+      (s) => s.client.id === socket.id,
+    )?.user;
+    const requestTeam = this.scoreboard.team1.players.find((p) => p === user)
+      ? 'team2'
+      : 'team1';
+    if (response) {
+      // console.debug('Raise accepted');
+    } else {
+      // console.debug('Raise denied');
+      this.scoreHandler(this.scoreboard[requestTeam].players[0]);
+    }
   }
 
   @SubscribeMessage('restart')
@@ -553,29 +589,21 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       s.client.emit('points', { points: this.points });
       s.client.emit('scoreboard', { scoreboard: this.scoreboard });
       s.client.emit('winnerround', {
-        winner: isDraw ? 'empate' : winnerPlayer,
+        winner: isDraw ? 'draw' : winnerPlayer,
       });
     });
   };
 
   handleResetData = () => {
-    this.hands = [];
-    this.manilha = null;
-    this.handling = [];
-    this.scoreboard = {
-      team1: {
-        score: 0,
-        players: ['', ''],
-      },
-      team2: {
-        score: 0,
-        players: ['', ''],
-      },
-    };
-    this.handTurn = '';
-    this.roundTurn = '';
-    this.round = 0;
-    this.points = [{}, {}, {}];
+    this.hands = Object.assign([], hands);
+    this.manilha = Object.assign({}, manilha);
+    this.handling = Object.assign([], handling);
+    this.scoreboard = JSON.parse(JSON.stringify(scoreboard));
+    this.handTurn = handTurn;
+    this.handValue = handValue;
+    this.roundTurn = roundTurn;
+    this.round = round;
+    this.points = Object.assign([], points);
     this.sessions.forEach((s) => {
       s.client.emit('restart');
     });
