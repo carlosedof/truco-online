@@ -17,7 +17,7 @@ async function bootstrap() {
   app.useWebSocketAdapter(new SocketAdapter(app));
   const configService = app.select(SharedModule).get(ApiConfigService);
   const port = configService.appConfig.port;
-  console.log(`Server running on port ${port}`);
   await app.listen(port);
+  console.log(`Server running on port ${port}`);
 }
 bootstrap();
