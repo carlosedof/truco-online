@@ -18,6 +18,7 @@ jest.mock<IInitialState>('../initial.states', () => ({
   },
   points: [{}, {}, {}],
   round: 1,
+  handValue: 1,
   handTurn: '',
   roundTurn: '',
   hands: [],
@@ -71,7 +72,6 @@ describe('On table, validate round sequence', () => {
 
   it('should the team 1 position 0 play after team 2 position 0', (done) => {
     connectionMock.client.on('turn', ({ turn }: { turn: string }) => {
-      console.log(turn);
       expect(turn).toMatch('John Locke');
       done();
     });

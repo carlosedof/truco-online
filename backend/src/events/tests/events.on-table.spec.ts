@@ -16,6 +16,7 @@ jest.mock<IInitialState>('../initial.states', () => ({
   },
   points: [{}, {}, {}],
   round: 0,
+  handValue: 1,
   handTurn: '',
   roundTurn: '',
   hands: [],

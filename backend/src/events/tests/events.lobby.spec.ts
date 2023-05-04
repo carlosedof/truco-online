@@ -55,13 +55,12 @@ describe('On lobby, sit and leave seat', () => {
   });
 
   it('should change chair when user stands up from one and sits at another one', (done) => {
-    const timeout = setTimeout(() => {
-      done();
-    }, 2000);
     connectionMock.client.once(
       'scoreboard',
       ({ scoreboard }: { scoreboard: IScoreboard }) => {
         expect(scoreboard.team2.players[0]).toMatch('Kate Austin');
+        expect(scoreboard.team1.players[0]).toMatch('');
+        done();
       },
     );
     connectionMock.client.emit('takeseat', {
