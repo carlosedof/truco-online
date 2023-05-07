@@ -4,7 +4,7 @@ import Card from '../Card';
 import {useGameStore} from '../../store';
 
 const Hand = ({h, handleIcon, currentPlayer}) => {
-  const {scoreboard, turn, playCard} = useGameStore();
+  const {scoreboard, turn, playCard, raiseRequest} = useGameStore();
 
   const isRevealed = useMemo(
     () => h.player === currentPlayer,
@@ -99,30 +99,40 @@ const Hand = ({h, handleIcon, currentPlayer}) => {
   }, [isRevealed, isOnRight, isOnLeft]);
 
   return (
-    <div className={position.container}>
-      {h?.cards?.map((card, y) => (
-        <button
-          className="transition-all hover:scale-105"
-          onClick={() => {
-            if ((isRevealed && turn === currentPlayer) || true) {
-              playCard({card, player: h?.player});
-            }
-          }}>
-          <Flip left cascade key={y}>
-            <Card
-              card={card}
-              handleIcon={handleIcon}
-              vertical={!isOnLeft && !isOnRight}
-              isRevealed={isRevealed}
-            />
-          </Flip>
-        </button>
-      ))}
-      <span className={position.labelClassName}>
-        {h?.player}
-        <div className="ml-1 h-[10px] w-[10px] rounded-full bg-accent font-bold" />
-      </span>
-    </div>
+    <>
+      {isRevealed && turn === currentPlayer &&
+          <button
+              onClick={raiseRequest}
+              className="px-4 py-1 absolute bg-secondary bottom-32 sm:bottom-40 text-white font-semibold rounded">
+            Truco
+          </button>
+      }
+      <div className={position.container}>
+        {h?.cards?.map((card, y) => (
+          <button
+            key={y}
+            className="transition-all hover:scale-105"
+            onClick={() => {
+              if ((isRevealed && turn === currentPlayer) || true) {
+                playCard({card, player: h?.player});
+              }
+            }}>
+            <Flip left cascade>
+              <Card
+                card={card}
+                handleIcon={handleIcon}
+                vertical={!isOnLeft && !isOnRight}
+                isRevealed={isRevealed}
+              />
+            </Flip>
+          </button>
+        ))}
+        <span className={position.labelClassName}>
+          {h?.player}
+          <div className="ml-1 h-[10px] w-[10px] rounded-full bg-accent font-bold" />
+        </span>
+      </div>
+    </>
   );
 };
 

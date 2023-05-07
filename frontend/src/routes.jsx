@@ -11,6 +11,7 @@ import Admin from './Admin';
 import Login from './Login';
 import {SocketProvider} from './provider';
 import {useGameStore} from './store';
+import Modal from "./components/Modal";
 
 export const WsContext = React.createContext({});
 
@@ -36,6 +37,7 @@ const App = () => {
 
   return (
     <div className="flex h-full w-full items-center justify-center">
+      <Modal />
       {routes}
       <button
         className="absolute bottom-2 right-2 text-xs text-neutral-300"

@@ -2,6 +2,7 @@ import React, {useLayoutEffect} from 'react'
 import Socket from '../../components/Socket'
 import { useAuthStore, useGameStore } from '../../store';
 import { EVENT_TYPES } from "../../store/Game";
+import useModalStore from "../../store/Modal";
 
 function SocketProvider({ children }) {
   const { currentPlayer } = useAuthStore();
@@ -14,10 +15,13 @@ function SocketProvider({ children }) {
     onReady,
     onScoreBoard,
     onPoints,
+    onRaiseRequest,
+    onRaiseResponse,
     onWinnerRound,
     onConnections,
     onRestart,
   } = useGameStore();
+  const { onModalVisible } = useModalStore();
   useLayoutEffect(() => {
     if (currentPlayer) {
       Socket.connect(currentPlayer);
@@ -34,6 +38,11 @@ function SocketProvider({ children }) {
     Socket.addListener(EVENT_TYPES.WHOS_CONNECTED, onScoreBoard);
     Socket.addListener(EVENT_TYPES.CONNECTED, onScoreBoard);
     Socket.addListener(EVENT_TYPES.POINTS, onPoints);
+    Socket.addListener(EVENT_TYPES.RAISE_REQUEST, (payload) => {
+      onModalVisible(payload);
+      onRaiseRequest(payload);
+    });
+    Socket.addListener(EVENT_TYPES.RAISE_RESPONSE, onRaiseResponse());
     Socket.addListener(EVENT_TYPES.WINNER_ROUND, onWinnerRound);
     Socket.addListener(EVENT_TYPES.CONNECTIONS, onConnections);
     Socket.addListener(EVENT_TYPES.RESTART, onRestart);

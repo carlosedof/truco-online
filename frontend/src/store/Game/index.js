@@ -19,48 +19,50 @@ export const EVENT_TYPES = {
   CONNECTIONS: 'connections',
   RESTART: 'restart',
   TAKE_SIT: 'takeseat',
+  RAISE_REQUEST: 'raiserequest',
+  RAISE_RESPONSE: 'raiseresponse',
 };
 
-const connectWebsocket = async get => {
-  const newSocket = new W3CWebSocket(import.meta.env.VITE_WEBSOCKET_URL);
-
-  newSocket.onopen = () => {
-    console.log('WebSocket connection established');
-    get().onConnectedSocket();
-  };
-
-  newSocket.onmessage = event => {
-    const eventParsed = JSON.parse(event.data);
-    const listeners = [
-      {type: EVENT_TYPES.CONNECTED_PLAYERS, handler: get().onConnectedPlayers},
-      {type: EVENT_TYPES.PLAYED, handler: get().onPlayed},
-      {type: EVENT_TYPES.MANILHA, handler: get().onManilha},
-      {type: EVENT_TYPES.HANDS, handler: get().onHands},
-      {type: EVENT_TYPES.TURN, handler: get().onTurn},
-      {type: EVENT_TYPES.READY, handler: get().onReady},
-      {type: EVENT_TYPES.SCORE_BOARD, handler: get().onScoreBoard},
-      {type: EVENT_TYPES.WHOS_CONNECTED, handler: get().onScoreBoard},
-      {type: EVENT_TYPES.CONNECTED, handler: get().onScoreBoard},
-      {type: EVENT_TYPES.POINTS, handler: get().onPoints},
-      {type: EVENT_TYPES.WINNER_ROUND, handler: get().onWinnerRound},
-      {type: EVENT_TYPES.CONNECTIONS, handler: get().onConnections},
-      {type: EVENT_TYPES.RESTART, handler: get().onRestart},
-    ];
-    listeners
-      .find(({type}) => type === eventParsed?.type)
-      ?.handler?.(eventParsed);
-  };
-
-  newSocket.onerror = event => {
-    console.error(`WebSocket error: ${event}`);
-  };
-
-  newSocket.onclose = event => {
-    console.log(`WebSocket connection closed: ${event.code} - ${event.reason}`);
-  };
-
-  return newSocket;
-};
+// const connectWebsocket = async get => {
+//   const newSocket = new W3CWebSocket(import.meta.env.VITE_WEBSOCKET_URL);
+//
+//   newSocket.onopen = () => {
+//     console.log('WebSocket connection established');
+//     get().onConnectedSocket();
+//   };
+//
+//   newSocket.onmessage = event => {
+//     const eventParsed = JSON.parse(event.data);
+//     const listeners = [
+//       {type: EVENT_TYPES.CONNECTED_PLAYERS, handler: get().onConnectedPlayers},
+//       {type: EVENT_TYPES.PLAYED, handler: get().onPlayed},
+//       {type: EVENT_TYPES.MANILHA, handler: get().onManilha},
+//       {type: EVENT_TYPES.HANDS, handler: get().onHands},
+//       {type: EVENT_TYPES.TURN, handler: get().onTurn},
+//       {type: EVENT_TYPES.READY, handler: get().onReady},
+//       {type: EVENT_TYPES.SCORE_BOARD, handler: get().onScoreBoard},
+//       {type: EVENT_TYPES.WHOS_CONNECTED, handler: get().onScoreBoard},
+//       {type: EVENT_TYPES.CONNECTED, handler: get().onScoreBoard},
+//       {type: EVENT_TYPES.POINTS, handler: get().onPoints},
+//       {type: EVENT_TYPES.WINNER_ROUND, handler: get().onWinnerRound},
+//       {type: EVENT_TYPES.CONNECTIONS, handler: get().onConnections},
+//       {type: EVENT_TYPES.RESTART, handler: get().onRestart},
+//     ];
+//     listeners
+//       .find(({type}) => type === eventParsed?.type)
+//       ?.handler?.(eventParsed);
+//   };
+//
+//   newSocket.onerror = event => {
+//     console.error(`WebSocket error: ${event}`);
+//   };
+//
+//   newSocket.onclose = event => {
+//     console.log(`WebSocket connection closed: ${event.code} - ${event.reason}`);
+//   };
+//
+//   return newSocket;
+// };
 
 const useGameStore = create((set, get) => ({
   connected: false,
@@ -84,14 +86,14 @@ const useGameStore = create((set, get) => ({
   points: [],
   connections: [],
   hands: [],
-  connectWebsocket: async () => {
-    const socket = await connectWebsocket(get);
-    set(() => ({socket}));
-  },
-  disconnectWebsocket: () => {
-    get().socket?.close();
-    set(() => ({socket: null}));
-  },
+  // connectWebsocket: async () => {
+  //   const socket = await connectWebsocket(get);
+  //   set(() => ({socket}));
+  // },
+  // disconnectWebsocket: () => {
+  //   get().socket?.close();
+  //   set(() => ({socket: null}));
+  // },
   onConnectedSocket: () => set(() => ({connected: true})),
   onConnectedPlayers: ({connectedPlayers}) => set(() => ({connectedPlayers})),
   onPlayed: ({handling}) => set(() => ({onTable: handling})),
@@ -101,12 +103,21 @@ const useGameStore = create((set, get) => ({
   onScoreBoard: ({scoreboard}) => set(() => ({scoreboard})),
   onReady: ({ready}) => set(() => ({ready})),
   onPoints: ({points}) => set(() => ({points})),
+  onRaiseRequest: () => {
+    // todo show raise request
+  },
+  onRaiseResponse: () => {
+  // todo show raise request
+  },
   onWinnerRound: isVisible => set(() => ({isDrawerVisible: isVisible})),
   onConnections: isVisible => set(() => ({isDrawerVisible: isVisible})),
   onRestart: () => {
     set(() => ({restart: true}));
   },
   onResetRestart: () => set(() => ({restart: false})),
+  raiseRequest: () => {
+    Socket.emit(EVENT_TYPES.RAISE_REQUEST);
+  },
   playCard: playedCard => {
     Socket.emit(EVENT_TYPES.PLAYED, playedCard);
   },
