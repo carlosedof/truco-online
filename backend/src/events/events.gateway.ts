@@ -68,7 +68,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('raiseresponse')
   async handleRaiseResponse(
     socket: Socket,
-    { response }: { response: boolean },
+    { response }: { response: string },
   ) {
     this.gameState.sessions.forEach((s) => {
       s.client.emit('raiseresponse', { response });
@@ -81,15 +81,29 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     )
       ? 'team2'
       : 'team1';
-    if (response) {
-      // console.debug('Raise accepted');
+    const otherTeam = this.lobbyState.scoreboard.team1.players.find(
+      (p) => p === user,
+    )
+      ? 'team1'
+      : 'team2';
+    if (response === 'accept') {
       this.gameState.handValue =
         this.gameState.handValue > 1
           ? this.gameState.handValue + 3
           : this.gameState.handValue + 2;
+    } else if (response === 'raise') {
+      this.gameState.handValue =
+        this.gameState.handValue > 1
+          ? this.gameState.handValue + 3
+          : this.gameState.handValue + 2;
+      this.gameState.sessions.forEach((s) => {
+        s.client.emit('raiserequest', { team: otherTeam, user });
+      });
     } else {
-      // console.debug('Raise denied');
-      this.scoreHandler(this.lobbyState.scoreboard[requestTeam].players[0]);
+      this.scoreHandler(
+        this.lobbyState.scoreboard[requestTeam].players[0],
+        true,
+      );
     }
   }
 
@@ -114,6 +128,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.emit('hands', { hands: this.gameState.hands });
     socket.emit('played', { played: this.gameState.handling });
     socket.emit('manilha', { manilha: this.gameState.manilha });
+    // TODO check for pending raise requests and responses and update users
   }
 
   @SubscribeMessage('played')
@@ -380,6 +395,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
       this.scoreHandler(
         draw ? null : this.gameState.handling[winnerIndex].player,
+        false,
       );
     }, 2500);
   };
@@ -415,7 +431,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }, 1200);
   };
 
-  scoreHandler = (winnerPlayer) => {
+  scoreHandler = (winnerPlayer: string, isRaiseDenied: boolean) => {
     const isDraw = !winnerPlayer;
     let winnerTeam;
     let finishedRound;
@@ -426,82 +442,92 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } else {
       winnerTeam = 'team2';
     }
-    if (isDraw) {
-      // mão empatada
-      this.gameState.points[this.gameState.round] = { draw: true };
-      if (this.gameState.round === 1 || this.gameState.round === 2) {
-        // mao empatada na segunda ou ultima rodada, quem ganhou a primeira mão leva
-        if (
-          this.lobbyState.scoreboard.team1.players.find(
-            (p) => this.gameState.points[0].winner === p,
-          )
-        ) {
-          this.lobbyState.scoreboard.team1.score =
-            this.lobbyState.scoreboard.team1.score + this.gameState.handValue;
-        } else {
-          this.lobbyState.scoreboard.team2.score =
-            this.lobbyState.scoreboard.team2.score + this.gameState.handValue;
-        }
-        finishedRound = true;
-        this.gameState.round = 0;
-      } else {
-        // mao empatada na primeira rodada, só mantém empate e não pontua
-        this.gameState.round = this.gameState.round + this.gameState.handValue;
-      }
-    } else {
-      this.gameState.points[this.gameState.round] = { winner: winnerPlayer };
-      if (this.gameState.round === 1) {
-        // segunda mão
-        // console.log('// segunda mão');
-        if (this.gameState.points[0].draw) {
-          // segunda mão com empate na primeira
-          // console.log('// segunda mão com empate na primeira');
-          this.lobbyState.scoreboard[winnerTeam].score =
-            this.lobbyState.scoreboard[winnerTeam].score +
-            this.gameState.handValue;
-          this.gameState.round = 0;
-          finishedRound = true;
-        } else {
-          // console.log('// segunda mão sem empate na primeira');
-          // segunda mão sem empate na primeira
+    if (!isRaiseDenied) {
+      if (isDraw) {
+        // mão empatada
+        this.gameState.points[this.gameState.round] = { draw: true };
+        if (this.gameState.round === 1 || this.gameState.round === 2) {
+          // mao empatada na segunda ou ultima rodada, quem ganhou a primeira mão leva
           if (
-            this.lobbyState.scoreboard[winnerTeam].players.includes(
-              this.gameState.points[0].winner,
+            this.lobbyState.scoreboard.team1.players.find(
+              (p) => this.gameState.points[0].winner === p,
             )
           ) {
-            // o time que venceu essa mão também venceu a mão anterior
-            // console.log(
-            //   '// o time que venceu essa mão também venceu a mão anterior',
-            // );
+            this.lobbyState.scoreboard.team1.score =
+              this.lobbyState.scoreboard.team1.score + this.gameState.handValue;
+          } else {
+            this.lobbyState.scoreboard.team2.score =
+              this.lobbyState.scoreboard.team2.score + this.gameState.handValue;
+          }
+          finishedRound = true;
+          this.gameState.round = 0;
+        } else {
+          // mao empatada na primeira rodada, só mantém empate e não pontua
+          this.gameState.round =
+            this.gameState.round + this.gameState.handValue;
+        }
+      } else {
+        this.gameState.points[this.gameState.round] = { winner: winnerPlayer };
+        if (this.gameState.round === 1) {
+          // segunda mão
+          // console.log('// segunda mão');
+          if (this.gameState.points[0].draw) {
+            // segunda mão com empate na primeira
+            // console.log('// segunda mão com empate na primeira');
             this.lobbyState.scoreboard[winnerTeam].score =
               this.lobbyState.scoreboard[winnerTeam].score +
               this.gameState.handValue;
             this.gameState.round = 0;
             finishedRound = true;
           } else {
-            // console.log(
-            //   '// o time que venceu essa mão perdeu a anterior, teremos terceira mão',
-            // );
-            // o time que venceu essa mão perdeu a anterior, teremos terceira mão
-            this.gameState.round =
-              this.gameState.round + this.gameState.handValue;
+            // console.log('// segunda mão sem empate na primeira');
+            // segunda mão sem empate na primeira
+            if (
+              this.lobbyState.scoreboard[winnerTeam].players.includes(
+                this.gameState.points[0].winner,
+              )
+            ) {
+              // o time que venceu essa mão também venceu a mão anterior
+              // console.log(
+              //   '// o time que venceu essa mão também venceu a mão anterior',
+              // );
+              this.lobbyState.scoreboard[winnerTeam].score =
+                this.lobbyState.scoreboard[winnerTeam].score +
+                this.gameState.handValue;
+              this.gameState.round = 0;
+              finishedRound = true;
+            } else {
+              // console.log(
+              //   '// o time que venceu essa mão perdeu a anterior, teremos terceira mão',
+              // );
+              // o time que venceu essa mão perdeu a anterior, teremos terceira mão
+              this.gameState.round =
+                this.gameState.round + this.gameState.handValue;
+            }
           }
+        } else if (this.gameState.round === 0) {
+          // console.log('// primeira mão, só atribui o ponto pra quem ganhou');
+          // primeira mão, só atribui o ponto pra quem ganhou
+          this.gameState.round =
+            this.gameState.round + this.gameState.handValue;
+        } else {
+          // ultima mão
+          // console.log('// o time que vence essa mao vence a rodada');
+          this.lobbyState.scoreboard[winnerTeam].score =
+            this.lobbyState.scoreboard[winnerTeam].score +
+            this.gameState.handValue;
+          this.gameState.round = 0;
+          finishedRound = true;
         }
-      } else if (this.gameState.round === 0) {
-        // console.log('// primeira mão, só atribui o ponto pra quem ganhou');
-        // primeira mão, só atribui o ponto pra quem ganhou
-        this.gameState.round = this.gameState.round + this.gameState.handValue;
-      } else {
-        // ultima mão
-        // console.log('// o time que vence essa mao vence a rodada');
-        this.lobbyState.scoreboard[winnerTeam].score =
-          this.lobbyState.scoreboard[winnerTeam].score +
-          this.gameState.handValue;
-        this.gameState.round = 0;
-        finishedRound = true;
       }
+    } else {
+      this.lobbyState.scoreboard[winnerTeam].score =
+        this.lobbyState.scoreboard[winnerTeam].score + 1;
     }
-    if (finishedRound) {
+    if (this.lobbyState.scoreboard[winnerTeam].score >= 12) {
+      this.handleEndgame(winnerTeam);
+    }
+    if (finishedRound || isRaiseDenied) {
       this.gameState.points = [{}, {}, {}];
       this.newHand();
     } else {
@@ -512,7 +538,6 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // turn = turn === connectedPlayers.length - 1 ? 0 : turn + 1;
-    // console.log(this.scoreboard);
     this.gameState.sessions.forEach((s) => {
       s.client.emit('turn', { turn: this.gameState.handTurn });
       s.client.emit('played', { handling: [] });
@@ -521,6 +546,13 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       s.client.emit('winnerround', {
         winner: isDraw ? 'draw' : winnerPlayer,
       });
+    });
+  };
+
+  handleEndgame = (winnerTeam: string) => {
+    this.gameState.endGame();
+    this.gameState.sessions.forEach((s) => {
+      s.client.emit('endgame', { winnerTeam });
     });
   };
 

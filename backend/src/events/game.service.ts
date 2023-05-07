@@ -46,6 +46,7 @@ export class GameService {
   public dealCards() {
     this.hands = [];
     this.manilha = null;
+    this.handValue = 1;
     // copy the cards array to avoid mutating the original array
     const availableCards = [...cards];
     const _hands = [];
@@ -100,6 +101,19 @@ export class GameService {
       this.hands[index] = hand;
     }
     this.handling.push({ card, player });
+  }
+
+  public endGame(): void {
+    this.hands = Object.assign([], hands);
+    this.manilha = Object.assign({}, manilha);
+    this.handling = Object.assign([], handling);
+    this.lobbyService.scoreboard.team1.score = 0;
+    this.lobbyService.scoreboard.team2.score = 0;
+    this.handTurn = handTurn;
+    this.handValue = handValue;
+    this.roundTurn = roundTurn;
+    this.round = round;
+    this.points = Object.assign([], points);
   }
 
   public resetState(): void {
