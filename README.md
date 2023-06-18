@@ -17,7 +17,7 @@ https://truco.dtdevs.com
 2. Navigate to the project directory:
 
 ```
-cd truco-online-game
+cd truco-online
 ```
 
 3. Install the dependencies:
